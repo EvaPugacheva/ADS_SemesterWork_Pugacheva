@@ -7,17 +7,19 @@ public class Main {
     private static final Random random = new Random();
 
     public static void main(String[] args) {
-        int count_lists = 100;
+        int count_lists = 50;
         String filesPrefix = "output/random_list";
         String filesPostfix = ".txt";
         createRandomLists(count_lists, filesPrefix, filesPostfix);
 
         List<TestResult> results = new ArrayList<>(count_lists * 2);
         for (int i = 1; i <= count_lists; i++) {
-            results.add(testSort(filesPrefix + i + filesPostfix));
+            results.add(testSort(filesPrefix + i + filesPostfix, i));
         }
 
-        saveTestResultsToFile(results, "benchmark_results.csv");
+        String benchmarkResultFilename = "benchmark_results.csv";
+        saveTestResultsToFile(results, benchmarkResultFilename);
+        System.out.println("Benchmark results saved to: " + benchmarkResultFilename);
     }
 
     public static void saveTestResultsToFile(List<TestResult> testResults, String filename) {
@@ -32,8 +34,10 @@ public class Main {
         }
     }
 
-    private static TestResult testSort(String filename) {
+    private static TestResult testSort(String filename, int testNumber) {
         List<Integer> list = deserializeList(filename);
+
+        System.out.println("Start testing list " + testNumber + " (can last long, up to ~30-40 s)");
 
         long startTime = System.nanoTime();
         StrandSort.sort(list);
@@ -42,9 +46,10 @@ public class Main {
         long duration = endTime - startTime;
         long timeInMs = duration / 1_000_000;
 
+
+        System.out.println("List " + testNumber + " tested: " + timeInMs + " (ms), iterations: " + StrandSort.getIterations() + ", size: " + list.size());
+
         return new TestResult(timeInMs, list.size(), StrandSort.getIterations());
-
-
     }
 
     private static void createRandomLists(int count, String filesPrefix, String filesPostfix) {
@@ -58,6 +63,7 @@ public class Main {
                     throw new RuntimeException(e);
                 }
             }
+            System.out.println("Random list " + i + " created");
 
             serializeList(generateRandomList(), filename);
         }
